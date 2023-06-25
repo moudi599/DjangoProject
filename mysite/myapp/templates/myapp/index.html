@@ -1,0 +1,185 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<center>
+<form id="view-books-form" method="POST" action="{% url 'view-book' %}">
+    {% csrf_token %}
+    <label for="title">Title:</label>
+    <input type="text" name="title" id="title">
+    <br>
+    <label for="author">Author:</label>
+    <input type="text" name="author" id="author">
+    <br>
+    <label for="category">Category:</label>
+    <input type="text" name="category" id="category">
+    <br>
+    <label for="publication_year">Publication Year:</label>
+    <input type="text" name="publication_year" id="publication_year">
+    <br>
+    <input type="submit" value="View"><br>
+    <input type="button" value="Add" id="add-book-button"><br>
+    <input type="button" value="Delete" id="delete-book-button"><br>
+    <input type="button" value="Edit" id="edit-book-button">
+</form>
+
+<div id="book-table"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+
+    $('#view-books-form').submit(function(event) {
+        event.preventDefault();
+        var form = $(this);
+        var url = "{% url 'view-book' %}";
+        var formData = form.serialize();
+
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: formData,
+            success: function(response) {
+                    $('#title').val('');
+                    $('#author').val('');
+                    $('#category').val('');
+                    $('#publication_year').val('');
+                    var books = response.books;
+                    var tableHtml = '<table>' +
+                    '<tr>' +
+                    '<th>Title</th>' +
+                    '<th>Author</th>' +
+                    '<th>Category</th>' +
+                    '<th>Publication Year</th>' +
+                    '</tr>';
+
+                if (books.length > 0) {
+                    for (var i = 0; i < books.length; i++) {
+                        var book = books[i];
+                        tableHtml += '<tr>' +
+                            '<td>' + book.title + '</td>' +
+                            '<td>' + book.author + '</td>' +
+                            '<td>' + book.category + '</td>' +
+                            '<td>' + book.publication_year + '</td>' +
+                            '</tr>';
+                    }
+                } else {
+                    tableHtml += '<tr>' +
+                        '<td colspan="4">No matching books found.</td>' +
+                        '</tr>';
+                }
+
+                tableHtml += '</table>';
+                $('#book-table').html(tableHtml);
+            },
+            error: function(xhr, errmsg, err) {
+                console.log(errmsg);
+            }
+        });
+    });
+
+    // Add Book Button
+    $('#add-book-button').click(function(event) {
+        event.preventDefault();
+
+        // Additional validation for all fields filled
+        if ($('#title').val() && $('#author').val() && $('#category').val() && $('#publication_year').val()) {
+            var formData = $('#view-books-form').serialize();
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'add-book' %}",
+                data: formData,
+                success: function(response) {
+                $('#title').val('');
+                $('#author').val('');
+                $('#category').val('');
+                $('#publication_year').val('');
+                    // Handle success response
+                    console.log('Book added successfully');
+                    // You can update the table or perform any other actions here
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(errmsg);
+                }
+            });
+        } else {
+            console.log('All fields must be filled');
+        }
+    });
+
+    // Delete Book Button
+    $('#delete-book-button').click(function(event) {
+        event.preventDefault();
+
+
+        // Additional validation for Title field filled
+        if ($('#title').val()) {
+		var formData = $('#view-books-form').serialize();
+            // Perform delete operation using AJAX or Django view
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'delete-book' %}",  // Replace with the actual URL for delete operation
+                data: formData ,  // Pass the title to identify the book to delete
+                success: function(response) {
+                $('#title').val('');
+                $('#author').val('');
+                $('#category').val('');
+                $('#publication_year').val('');
+                    // Handle success response
+                    console.log('Book deleted successfully');
+                    // You can update the table or perform any other actions here
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(errmsg);
+                }
+            });
+        } else {
+            console.log('Title field must be filled');
+        }
+    });
+
+    // Edit Book Button
+    $('#edit-book-button').click(function(event) {
+        event.preventDefault();
+
+
+        // Additional validation for Title field filled
+        if ($('#title').val()) {
+            // Perform edit operation using AJAX or Django view
+            var formData = $('#view-books-form').serialize();
+
+
+            $.ajax({
+                type: 'POST',
+                url: "{% url 'edit-book' %}",  // Replace with the actual URL for edit operation
+                data: formData,  // Pass the updated book information
+                success: function(response) {
+                $('#title').val('');
+                $('#author').val('');
+                $('#category').val('');
+                $('#publication_year').val('');
+                    // Handle success response
+                    console.log('Book edited successfully');
+                    // You can update the table or perform any other actions here
+
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(errmsg);
+                }
+            });
+        } else {
+            console.log('Title field must be filled');
+        }
+    });
+
+});
+</script>
+
+</center>
+</body>
+</html>
